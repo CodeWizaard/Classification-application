@@ -4,6 +4,44 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+processed_data = None
+X_train, X_test, y_train, y_test = None, None, None, None
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+# Глобальные переменные для хранения данных
+X_train, X_test, y_train, y_test = None, None, None, None
+
+
+def split_dataset(data, test_size=0.2, random_state=42):
+    """
+    Делит данные на тренировочную и тестовую выборки.
+
+    Параметры:
+        data (pd.DataFrame): Входные данные со столбцами x1, x2 и Y.
+        test_size (float): Доля данных для тестовой выборки (по умолчанию 0.2).
+        random_state (int): Значение для воспроизводимости разбиения (по умолчанию 42).
+
+    Возвращает:
+        None: Результаты сохраняются в глобальных переменных.
+    """
+    global X_train, X_test, y_train, y_test
+
+    try:
+        # Разделение на признаки (X) и метки классов (y)
+        X = data[['x1', 'x2']].values
+        y = data['Y'].values
+
+        # Разделение на тренировочную и тестовую выборки
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+
+        print("Данные успешно разделены:")
+        print(f"Размер тренировочной выборки: {X_train.shape[0]} объектов")
+        print(f"Размер тестовой выборки: {X_test.shape[0]} объектов")
+    except Exception as e:
+        print(f"Произошла ошибка при разделении данных: {e}")
+
 
 def process_dataset(file_path):
     """
@@ -90,7 +128,13 @@ def choose_file():
         label.config(text=f"Выбран файл: {file_path}")
         create_supporting_interface()
         button.config(image=new_image)
-    process_dataset(file_path)
+        processed_data = process_dataset(file_path)
+        split_dataset(processed_data)
+        print(f"Размер processed_data: {processed_data.shape}")
+        print(f"Размер тренировочной выборки: {X_train.shape}")
+        print(f"Размер тестовой выборки: {X_test.shape}")
+
+
 start_image = tk.PhotoImage(file="But.png")  # Путь к первому изображению
 new_image = tk.PhotoImage(file="Done.png")
 chek_image = tk.PhotoImage(file="Confirm.png")
