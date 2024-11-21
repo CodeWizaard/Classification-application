@@ -5,6 +5,42 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+def process_dataset(file_path):
+    """
+    Обрабатывает датасет, объединяя данные из всех классов в единую таблицу.
+
+    Параметры:
+        file_path (str): Путь к Excel-файлу с исходными данными.
+
+    Возвращает:
+        pd.DataFrame: Объединенные данные со столбцами x1, x2 и Y.
+    """
+    try:
+        # Загрузка исходного файла
+        data = pd.read_excel(file_path)
+
+        # Инициализация списка для хранения данных
+        combined_data = []
+
+        # Обработка данных по колонкам (шаг 3)
+        num_classes = data.shape[1] // 3  # Число классов
+        for i in range(num_classes):
+            start_col = i * 3
+            subset = data.iloc[:, start_col:start_col + 3]  # Берем 3 колонки для текущего класса
+            subset.columns = ['x1', 'x2', 'Y']  # Переименовываем колонки
+            combined_data.append(subset)
+
+        # Объединение всех классов в единый DataFrame
+        combined_data = pd.concat(combined_data, ignore_index=True)
+
+        print("Обработанные данные:")
+        print(combined_data)  # Вывод первых строк для проверки
+        return combined_data
+
+    except Exception as e:
+        print(f"Произошла ошибка при обработке файла: {e}")
+        return None
+
 mainWindow = tk.Tk()  # Инициализация главного окна
 mainWindow.configure(bg="#f0f0f0")  # Установка цвета, например, светло-синего
 mainWindow.title("Мое окно")  # Установка заголовка окна
@@ -43,11 +79,8 @@ def create_supporting_interface():
         borderwidth=0
     )
     ConfirmButton.pack(pady=10)  # Добавление кнопки с отступом
-
 def on_сonfirm_click():
     print(1)
-
-
 def on_button_click():
     label.config(text="Датасет выбран")
     choose_file()
@@ -57,8 +90,7 @@ def choose_file():
         label.config(text=f"Выбран файл: {file_path}")
         create_supporting_interface()
         button.config(image=new_image)
-    data = pd.read_csv(file_path, encoding="utf-8-sig")
-    print(data)
+    process_dataset(file_path)
 start_image = tk.PhotoImage(file="But.png")  # Путь к первому изображению
 new_image = tk.PhotoImage(file="Done.png")
 chek_image = tk.PhotoImage(file="Confirm.png")
