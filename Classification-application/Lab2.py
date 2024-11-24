@@ -2,17 +2,14 @@ import tkinter as tk
 from tkinter import filedialog
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
 
 processed_data = None
 X_train, X_test, y_train, y_test = None, None, None, None
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-# Глобальные переменные для хранения данных
-X_train, X_test, y_train, y_test = None, None, None, None
-
+#Данные после преобразования
+train_transformed = None
+test_transformed = None
 
 def split_dataset(data, test_size=0.2, random_state=42):
     """
@@ -42,6 +39,52 @@ def split_dataset(data, test_size=0.2, random_state=42):
     except Exception as e:
         print(f"Произошла ошибка при разделении данных: {e}")
 
+def transform_datasets(X_train, X_test, y_train, y_test, query_point):
+    """
+    Преобразует тренировочную и тестовую выборки:
+    - Добавляет индексы для каждой точки.
+    - Вычисляет расстояние от точки запроса до каждой точки.
+
+    Параметры:
+        X_train (np.ndarray): Признаки тренировочной выборки.
+        X_test (np.ndarray): Признаки тестовой выборки.
+        y_train (np.ndarray): Метки тренировочной выборки.
+        y_test (np.ndarray): Метки тестовой выборки.
+        query_point (np.ndarray): Точка запроса.
+
+    Возвращает:
+        pd.DataFrame, pd.DataFrame: Преобразованные тренировочная и тестовая выборки.
+    """
+    global train_transformed, test_transformed
+
+    # Преобразуем тренировочную выборку
+    train_transformed = pd.DataFrame(X_train, columns=['x1', 'x2'])
+    train_transformed['Y'] = y_train
+    train_transformed['index'] = range(len(train_transformed))
+    train_transformed['distance'] = train_transformed.apply(
+        lambda row: np.linalg.norm([row['x1'], row['x2']] - query_point),
+        axis=1
+    )
+
+    # Преобразуем тестовую выборку
+    test_transformed = pd.DataFrame(X_test, columns=['x1', 'x2'])
+    test_transformed['Y'] = y_test
+    test_transformed['index'] = range(len(test_transformed))
+    test_transformed['distance'] = test_transformed.apply(
+        lambda row: np.linalg.norm([row['x1'], row['x2']] - query_point),
+        axis=1
+    )
+
+    # Сортируем выборки по расстоянию
+    train_transformed = train_transformed.sort_values(by='distance').reset_index(drop=True)
+    test_transformed = test_transformed.sort_values(by='distance').reset_index(drop=True)
+
+    print("Тренировочная выборка преобразована:")
+    print(train_transformed.head())
+    print("\nТестовая выборка преобразована:")
+    print(test_transformed.head())
+
+    return train_transformed, test_transformed
 
 def process_dataset(file_path):
     """
@@ -130,9 +173,8 @@ def choose_file():
         button.config(image=new_image)
         processed_data = process_dataset(file_path)
         split_dataset(processed_data)
-        print(f"Размер processed_data: {processed_data.shape}")
-        print(f"Размер тренировочной выборки: {X_train.shape}")
-        print(f"Размер тестовой выборки: {X_test.shape}")
+        transform_datasets(X_train,X_test,y_train,y_test,query_point = np.array([4, 4]))
+
 
 
 start_image = tk.PhotoImage(file="But.png")  # Путь к первому изображению
